@@ -5,9 +5,13 @@ Supply Chain Planning System – Streamlit Dashboard
 
 Sidebar  : Global filters + Forecast settings + Inventory/Supply parameters
 Tab 1    : 📊 Overview      — System-wide KPI summary
-Tab 2    : 🔮 Forecast      — Demand forecast & accuracy  (local: SKU, model compare)
-Tab 3    : 📦 Inventory     — Policy table, DOS, risk     (local: status, DOS range, sort)
-Tab 4    : 🚚 Supply        — Replenishment plan          (local: supplier, arrival, value)
+Tab 2    : 🔮 Forecast      — Demand forecast & accuracy
+Tab 3    : 📦 Inventory     — Policy table, DOS, risk
+Tab 4    : 🚚 Supply        — Replenishment plan
+
+FIX (Streamlit Cloud):
+  - _ensure_pipeline() auto-generates data + runs pipeline on first boot
+  - load_data() uses ROOT / Path(__file__) — absolute paths, immune to CWD
 
 Run:
   streamlit run dashboard/app.py
@@ -68,161 +72,49 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: var(--font-mono) !important;
 }
 [data-testid="stSidebar"] {
-    background: var(--bg-card) !important;
+    background: #0d1117 !important;
     border-right: 1px solid var(--border) !important;
 }
+[data-testid="stSidebar"] * { color: var(--text) !important; }
 
-/* ── Sidebar sections ─────────────────────────────── */
-.sidebar-brand {
-    font-family: var(--font-head);
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--accent);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 1rem 0 0.25rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 1rem;
-}
-.sidebar-sub {
-    font-size: 0.65rem;
-    color: var(--muted);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 0.75rem;
-}
-.sidebar-section {
-    font-family: var(--font-head);
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin: 1.1rem 0 0.5rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid var(--border);
-}
-
-/* ── KPI cards ────────────────────────────────────── */
-.kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-    gap: 12px;
-    margin-bottom: 1.5rem;
-}
+/* ── KPI cards ── */
+.kpi-grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 20px; }
 .kpi-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.1rem 1.25rem;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.2s;
+    border-radius: 10px;
+    padding: 14px 18px;
+    min-width: 150px;
+    flex: 1;
 }
-.kpi-card:hover { border-color: var(--accent); }
-.kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-}
-.kpi-card.accent::before  { background: var(--accent); }
-.kpi-card.accent2::before { background: var(--accent2); }
-.kpi-card.accent3::before { background: var(--accent3); }
-.kpi-card.warn::before    { background: var(--warn); }
-.kpi-card.danger::before  { background: var(--danger); }
-.kpi-label {
-    font-size: 0.62rem;
-    color: var(--muted);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 0.4rem;
-}
-.kpi-value {
-    font-family: var(--font-head);
-    font-size: 1.75rem;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--text);
-}
-.kpi-sub {
-    font-size: 0.65rem;
-    color: var(--muted);
-    margin-top: 0.3rem;
-}
+.kpi-card.accent  { border-top: 3px solid var(--accent); }
+.kpi-card.accent2 { border-top: 3px solid var(--accent2); }
+.kpi-card.accent3 { border-top: 3px solid var(--accent3); }
+.kpi-card.warn    { border-top: 3px solid var(--warn); }
+.kpi-card.danger  { border-top: 3px solid var(--danger); }
+.kpi-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.kpi-value { font-size: 1.55rem; font-weight: 700; font-family: var(--font-head); color: var(--text); line-height: 1.2; }
+.kpi-sub   { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
 
-/* ── Section header ──────────────────────────────── */
+/* ── Section titles ── */
 .section-title {
     font-family: var(--font-head);
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 600;
-    letter-spacing: 0.18em;
+    color: var(--muted);
     text-transform: uppercase;
-    color: var(--muted);
-    margin: 1.75rem 0 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-}
-
-/* ── Filter bar ──────────────────────────────────── */
-.filter-bar {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.filter-label {
-    font-size: 0.62rem;
-    color: var(--muted);
     letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 0.2rem;
+    margin: 24px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
 }
 
-/* ── Tabs ────────────────────────────────────────── */
-[data-testid="stTabs"] [role="tab"] {
-    font-family: var(--font-head) !important;
-    font-size: 0.78rem !important;
-    letter-spacing: 0.08em !important;
-    text-transform: uppercase !important;
-    color: var(--muted) !important;
-    padding: 0.6rem 1.2rem !important;
-}
-[data-testid="stTabs"] [role="tab"][aria-selected="true"] {
-    color: var(--accent) !important;
-    border-bottom: 2px solid var(--accent) !important;
-}
+/* ── Sidebar ── */
+.sidebar-brand { font-family: var(--font-head); font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-bottom: 2px; }
+.sidebar-sub   { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+.sidebar-section { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin: 14px 0 6px; }
 
-/* ── Dataframe ───────────────────────────────────── */
-[data-testid="stDataFrame"] {
-    font-family: var(--font-mono) !important;
-    font-size: 0.78rem !important;
-}
-
-/* ── Inputs ──────────────────────────────────────── */
-[data-testid="stSelectbox"] label,
-[data-testid="stSlider"] label,
-[data-testid="stMultiSelect"] label,
-[data-testid="stToggle"] label {
-    font-size: 0.68rem !important;
-    letter-spacing: 0.08em !important;
-    text-transform: uppercase !important;
-    color: var(--muted) !important;
-}
-
-/* ── Page title ──────────────────────────────────── */
+/* ── Page title ── */
 .page-title {
     font-family: var(--font-head);
     font-size: 2rem;
@@ -282,12 +174,58 @@ MODEL_COLORS = {
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# DATA LOADER
+# AUTO-INIT  (FIX: generates data + pipeline on first Streamlit Cloud boot)
 # ══════════════════════════════════════════════════════════════════════════
 
-@st.cache_data
-def load_data():
-    out = {}
+def _ensure_pipeline() -> None:
+    """
+    If CSV outputs are missing (fresh Streamlit Cloud deployment),
+    auto-generate mock data then run the full planning pipeline.
+    This makes the app fully self-contained — no manual pre-step needed.
+    """
+    data_csv   = ROOT / "data"      / "outputs" / "sales_history.csv"
+    policy_csv = ROOT / "inventory" / "outputs" / "inventory_policy.csv"
+    plan_csv   = ROOT / "supply"    / "outputs" / "replenishment_plan.csv"
+    fc_csv     = ROOT / "forecast"  / "outputs" / "forecast_qty.csv"
+
+    # Step 1 — raw data
+    if not data_csv.exists():
+        with st.spinner("⚙️  Generating mock data (first boot) …"):
+            try:
+                from data.mock_data_generator import generate_all  # type: ignore
+                generate_all(
+                    seed=42,
+                    save_csv=True,
+                    output_dir=str(ROOT / "data" / "outputs"),
+                )
+            except Exception as exc:
+                st.error(f"❌ Data generation failed: {exc}")
+                return
+
+    # Step 2 — pipeline outputs
+    if not all(p.exists() for p in [policy_csv, plan_csv, fc_csv]):
+        with st.spinner("🔄  Running planning pipeline (~30 s, first boot only) …"):
+            try:
+                from main import run_pipeline  # type: ignore
+                run_pipeline(forecast_model="moving_average", save=True)
+                st.toast("✅ Pipeline ready!", icon="🚀")
+            except Exception as exc:
+                st.warning(
+                    f"⚠️  Auto-pipeline failed: {exc}\n\n"
+                    "**Quick fix:** run `python main.py` locally, "
+                    "then commit all `*/outputs/*.csv` files to your repo and redeploy."
+                )
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# DATA LOADER  (FIX: absolute paths via ROOT / Path(__file__))
+# ══════════════════════════════════════════════════════════════════════════
+
+@st.cache_data(show_spinner="Loading planning data …")
+def load_data() -> dict[str, pd.DataFrame]:
+    """Load all pipeline CSVs. Returns empty DataFrames on missing files."""
+    out: dict[str, pd.DataFrame] = {}
+
     paths = {
         "policy":          ROOT / "inventory" / "outputs" / "inventory_policy.csv",
         "inv_kpis":        ROOT / "inventory" / "outputs" / "inventory_kpis.csv",
@@ -331,9 +269,7 @@ def sb_section(title: str) -> None:
     st.markdown(f'<div class="sidebar-section">{title}</div>', unsafe_allow_html=True)
 
 def safe_layout(extra: dict) -> dict:
-    """Merge PLOTLY_LAYOUT with extra keys, overriding conflicting axis keys safely."""
-    layout = {k: v for k, v in PLOTLY_LAYOUT.items()
-              if k not in extra}
+    layout = {k: v for k, v in PLOTLY_LAYOUT.items() if k not in extra}
     layout.update(extra)
     return layout
 
@@ -345,6 +281,9 @@ def safe_layout(extra: dict) -> dict:
 with st.sidebar:
     st.markdown('<div class="sidebar-brand">⬡ SC Planning</div>', unsafe_allow_html=True)
     st.markdown('<div class="sidebar-sub">Demand-Supply System</div>', unsafe_allow_html=True)
+
+    # FIX: run auto-init before loading data
+    _ensure_pipeline()
 
     DATA       = load_data()
     policy_raw = DATA.get("policy", pd.DataFrame())
@@ -376,53 +315,27 @@ with st.sidebar:
 
     # ── 🔮 Forecast Settings ──────────────────────────────────────────────
     sb_section("🔮 Forecast Settings")
-
-    g_fc_model = st.selectbox(
-        "Default Model View",
-        ["Auto (Best)", "moving_average", "exponential_smoothing", "xgboost"],
-        key="g_fc_model",
-    )
-    g_horizon = st.select_slider(
-        "Forecast Horizon (days)",
-        options=[30, 60, 90, 120, 180],
-        value=90,
-        key="g_horizon",
-    )
-    g_test_days = st.select_slider(
-        "Evaluation Window (days)",
-        options=[14, 21, 30, 45, 60],
-        value=30,
-        key="g_test",
-    )
+    g_horizon = st.slider("Forecast Horizon (days)", 30, 180, 90, key="g_horizon")
 
     # ── 📦 Inventory Parameters ───────────────────────────────────────────
     sb_section("📦 Inventory Parameters")
-
-    g_lead_time = st.slider(
-        "Lead Time Override (days)",
-        min_value=1, max_value=30, value=14, step=1,
-        key="g_lt",
-        help="Override avg lead time for what-if analysis",
-    )
     g_service_level = st.slider(
-        "Service Level Target (%)",
-        min_value=85, max_value=99, value=95, step=1,
-        key="g_sl",
-        help="Target service level — affects Safety Stock calculation",
+        "Service Level (%)", 80, 99, 95, key="g_sl",
+        help="Target service level for safety stock calculation",
     )
-    g_review_period = st.select_slider(
-        "Review Period (days)",
-        options=[7, 14, 30],
-        value=14,
-        key="g_rp",
+    g_lead_time = st.slider(
+        "Lead Time Override (days)", 1, 30, 14, key="g_lt",
+        help="Override lead time for what-if analysis",
+    )
+    g_review_period = st.slider(
+        "Review Period (days)", 1, 30, 7, key="g_rp",
+        help="Replenishment review cycle",
     )
 
     # ── 🚚 Supply Parameters ──────────────────────────────────────────────
     sb_section("🚚 Supply Parameters")
-
     g_safety_buffer = st.slider(
-        "Safety Buffer (%)",
-        min_value=0, max_value=30, value=10, step=5,
+        "Safety Buffer (%)", min_value=0, max_value=30, value=10, step=5,
         key="g_sb",
         help="Extra buffer added on top of EOQ order quantity",
     )
@@ -451,7 +364,6 @@ with st.sidebar:
     for lbl, ok in checks.items():
         st.markdown(f"{'🟢' if ok else '🔴'}  {lbl}")
 
-    # ── Parameter info box ────────────────────────────────────────────────
     st.markdown("---")
     st.caption(
         f"ℹ️ Lead time: **{g_lead_time}d** · SL: **{g_service_level}%** · "
@@ -464,7 +376,6 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════════════════
 
 def apply_global(df: pd.DataFrame) -> pd.DataFrame:
-    """Apply global sidebar filters (warehouse + ABC) to any DataFrame."""
     if df.empty:
         return df
     if g_warehouse != "All" and "warehouse" in df.columns:
@@ -507,11 +418,9 @@ with tab1:
     sup_kpi = DATA.get("supply_kpis", pd.DataFrame())
     summ    = DATA.get("summary",     pd.DataFrame())
 
-    # ── Local filter: top N alerts ────────────────────────────────────────
     with st.expander("⚙️  Overview Options", expanded=False):
         top_n_alerts = st.slider("Top N Critical Alerts", 5, 30, 15, key="ov_topn")
 
-    # ── System KPIs ───────────────────────────────────────────────────────
     section("System KPIs")
     ik = inv_kpi.iloc[0].to_dict() if not inv_kpi.empty else {}
     sk = sup_kpi.iloc[0].to_dict() if not sup_kpi.empty else {}
@@ -519,7 +428,7 @@ with tab1:
 
     n_critical = int(len(policy[policy["policy_status"] == "CRITICAL"]) if not policy.empty else 0)
 
-    cards = '<div class="kpi-grid">'
+    cards  = '<div class="kpi-grid">'
     cards += kpi_card("Total Inventory Value",  f"{ik.get('total_inventory_value_b_vnd',0):.1f}B", "VND", "accent")
     cards += kpi_card("Avg Days of Supply",     f"{ik.get('avg_dos',0):.1f}", "days remaining", "accent3")
     cards += kpi_card("Replenishment Orders",   str(sk.get('total_orders',0)), f"{sk.get('total_order_value_b_vnd',0):.1f}B VND", "accent2")
@@ -529,7 +438,6 @@ with tab1:
     cards += '</div>'
     st.markdown(cards, unsafe_allow_html=True)
 
-    # ── Charts row 1 ──────────────────────────────────────────────────────
     col1, col2 = st.columns(2)
 
     with col1:
@@ -548,42 +456,41 @@ with tab1:
                 x=0.5, y=0.5, showarrow=False,
                 font=dict(size=18, color="#e2e8f0", family="Syne"),
             )
-            fig.update_layout(**PLOTLY_LAYOUT, showlegend=False, height=260)
+            fig.update_layout(**PLOTLY_LAYOUT, height=300, showlegend=True)
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Run the pipeline to see inventory policy data.")
 
     with col2:
-        section("Inventory Value by Warehouse")
-        if not policy.empty:
-            wh_val = (policy.groupby("warehouse")["inventory_value_vnd"]
-                      .sum().div(1e9).reset_index()
-                      .sort_values("inventory_value_vnd", ascending=True))
+        section("Top Replenishment Orders by Value")
+        if not plan.empty:
+            top_plan = (plan.nlargest(15, "order_value_vnd")
+                        .assign(label=lambda d: d["sku"] + " / " + d["warehouse"],
+                                value_m=lambda d: d["order_value_vnd"] / 1e6))
             fig = go.Figure(go.Bar(
-                x=wh_val["inventory_value_vnd"], y=wh_val["warehouse"],
-                orientation="h",
-                marker=dict(color=wh_val["inventory_value_vnd"],
-                            colorscale=[[0,"#1e2736"],[1,"#00d4ff"]], showscale=False),
-                text=wh_val["inventory_value_vnd"].map(lambda x: f"{x:.2f}B"),
-                textposition="outside", textfont=dict(size=10),
+                x=top_plan["value_m"], y=top_plan["label"], orientation="h",
+                marker_color="#ff6b35",
+                text=top_plan["value_m"].map(lambda x: f"{x:.0f}M"),
+                textposition="outside", textfont=dict(size=9),
             ))
-            fig.update_layout(**PLOTLY_LAYOUT, height=260,
-                              xaxis_title="Inventory Value (B VND)", yaxis_title="")
+            fig.update_layout(**PLOTLY_LAYOUT, height=300,
+                              xaxis_title="Order Value (M VND)", yaxis_title="")
             st.plotly_chart(fig, use_container_width=True)
 
-    # ── Charts row 2 ──────────────────────────────────────────────────────
     col3, col4 = st.columns(2)
 
     with col3:
-        section("Safety Stock vs On-Hand by ABC Class")
+        section("Inventory vs Safety Stock by ABC Class")
         if not policy.empty:
-            abc_agg = policy.groupby("abc_class").agg(
-                on_hand=("on_hand_units","mean"),
-                safety_stock=("safety_stock","mean"),
-                rop=("reorder_point","mean"),
-            ).reset_index()
+            abc_inv = (policy.groupby("abc_class")
+                       .agg(avg_on_hand=("on_hand_units","mean"),
+                            avg_ss=("safety_stock","mean"),
+                            avg_rop=("reorder_point","mean"))
+                       .reset_index())
             fig = go.Figure()
-            fig.add_trace(go.Bar(name="On Hand",      x=abc_agg["abc_class"], y=abc_agg["on_hand"],       marker_color="#00d4ff"))
-            fig.add_trace(go.Bar(name="Safety Stock", x=abc_agg["abc_class"], y=abc_agg["safety_stock"],  marker_color="#ff6b35"))
-            fig.add_trace(go.Bar(name="ROP",          x=abc_agg["abc_class"], y=abc_agg["rop"],           marker_color="#ffb830", opacity=0.6))
+            fig.add_trace(go.Bar(name="Avg On Hand",      x=abc_inv["abc_class"], y=abc_inv["avg_on_hand"],  marker_color="#00d4ff"))
+            fig.add_trace(go.Bar(name="Avg Safety Stock", x=abc_inv["abc_class"], y=abc_inv["avg_ss"],       marker_color="#ff6b35"))
+            fig.add_trace(go.Bar(name="Avg ROP",          x=abc_inv["abc_class"], y=abc_inv["avg_rop"],      marker_color="#ffb830", opacity=0.6))
             fig.update_layout(**PLOTLY_LAYOUT, barmode="group", height=260,
                               xaxis_title="ABC Class", yaxis_title="Units (avg)")
             st.plotly_chart(fig, use_container_width=True)
@@ -604,7 +511,6 @@ with tab1:
                               yaxis_title="Stockout Risk (%)", showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
 
-    # ── Critical alerts table ─────────────────────────────────────────────
     section(f"🔴  Critical Alerts — Top {top_n_alerts} by Stockout Risk")
     if not policy.empty:
         critical = (policy[policy["policy_status"] == "CRITICAL"]
@@ -628,14 +534,13 @@ with tab2:
     forecast_df  = apply_global(DATA.get("forecast",  pd.DataFrame()).copy())
     accuracy_df  = apply_global(DATA.get("accuracy",  pd.DataFrame()).copy())
     sales_df     = apply_global(DATA.get("sales",     pd.DataFrame()).copy())
-    summ_df      = DATA.get("summary",  pd.DataFrame())
+    summ_df      = DATA.get("summary",         pd.DataFrame())
     model_sel_df = DATA.get("model_selection", pd.DataFrame())
 
-    # ── Forecast KPIs ─────────────────────────────────────────────────────
     section("Forecast Accuracy KPIs")
     fk = summ_df.iloc[0].to_dict() if not summ_df.empty else {}
 
-    cards = '<div class="kpi-grid">'
+    cards  = '<div class="kpi-grid">'
     cards += kpi_card("Forecast Accuracy", f"{fk.get('mean_forecast_accuracy',0):.1f}%", "mean across all SKU×WH", "accent3")
     cards += kpi_card("Mean MAPE",         f"{fk.get('mean_mape',0):.1f}%",              "lower is better", "warn")
     cards += kpi_card("Median MAPE",       f"{fk.get('median_mape',0):.1f}%",            "", "warn")
@@ -645,10 +550,9 @@ with tab2:
     cards += '</div>'
     st.markdown(cards, unsafe_allow_html=True)
 
-    # ── Local filters ─────────────────────────────────────────────────────
     section("Demand Forecast — SKU View")
 
-    sku_list = sorted(forecast_df["sku"].unique().tolist())      if not forecast_df.empty else []
+    sku_list = sorted(forecast_df["sku"].unique().tolist())       if not forecast_df.empty else []
     wh_list  = sorted(forecast_df["warehouse"].unique().tolist()) if not forecast_df.empty else []
 
     lf_col1, lf_col2, lf_col3, lf_col4 = st.columns([2, 2, 2, 1])
@@ -657,12 +561,12 @@ with tab2:
     with lf_col2:
         sel_wh2 = st.selectbox("Warehouse", wh_list, key="fc_wh")
     with lf_col3:
-        model_opts = ["All Models (Compare)"] + sorted(forecast_df["model"].unique().tolist()) if not forecast_df.empty else ["All Models (Compare)"]
+        model_opts = (["All Models (Compare)"] + sorted(forecast_df["model"].unique().tolist())
+                      if not forecast_df.empty else ["All Models (Compare)"])
         sel_model_view = st.selectbox("Model View", model_opts, key="fc_model_view")
     with lf_col4:
         show_ci = st.toggle("Confidence Band", value=True, key="fc_ci")
 
-    # ── Forecast chart ────────────────────────────────────────────────────
     if not forecast_df.empty and not sales_df.empty and sku_list:
         hist_sub = (sales_df[(sales_df["sku"] == sel_sku) & (sales_df["warehouse"] == sel_wh2)]
                     .groupby("date")["demand_qty"].sum().reset_index()
@@ -670,7 +574,6 @@ with tab2:
 
         fig = go.Figure()
 
-        # Historical
         if not hist_sub.empty:
             fig.add_trace(go.Scatter(
                 x=hist_sub["date"], y=hist_sub["demand_qty"],
@@ -678,7 +581,6 @@ with tab2:
                 line=dict(color="#7fff6b", width=1.5), mode="lines",
             ))
 
-        # Forecast traces — single or compare
         models_to_plot = (
             forecast_df["model"].unique().tolist()
             if sel_model_view == "All Models (Compare)"
@@ -695,134 +597,51 @@ with tab2:
             if fc_sub.empty:
                 continue
 
-            color     = MODEL_COLORS.get(m, "#00d4ff")
-            r, g, b   = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
+            color = MODEL_COLORS.get(m, "#00d4ff")
+            r_c, g_c, b_c = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
             show_band = show_ci and sel_model_view != "All Models (Compare)"
 
-            # 1. Forecast line (draw first so band renders on top cleanly)
             fig.add_trace(go.Scatter(
                 x=fc_sub["date"], y=fc_sub["forecast_qty"],
                 name=m.replace("_", " ").title(),
                 line=dict(color=color, width=2, dash="dash"), mode="lines",
             ))
 
-            # 2. Confidence band — filled area + explicit upper/lower lines
-            if show_band and "upper_bound" in fc_sub.columns and "lower_bound" in fc_sub.columns:
-                # Filled area
+            if show_band and "forecast_qty" in fc_sub.columns:
+                sigma = fc_sub["forecast_qty"].std() * 0.3
                 fig.add_trace(go.Scatter(
                     x=pd.concat([fc_sub["date"], fc_sub["date"].iloc[::-1]]),
-                    y=pd.concat([fc_sub["upper_bound"], fc_sub["lower_bound"].iloc[::-1]]),
+                    y=pd.concat([fc_sub["forecast_qty"] + sigma,
+                                 (fc_sub["forecast_qty"] - sigma).iloc[::-1]]),
                     fill="toself",
-                    fillcolor=f"rgba({r},{g},{b},0.15)",
+                    fillcolor=f"rgba({r_c},{g_c},{b_c},0.1)",
                     line=dict(color="rgba(0,0,0,0)"),
-                    name="Confidence Band",
-                    showlegend=True,
-                    hoverinfo="skip",
+                    showlegend=False, name=f"{m} band",
                 ))
-                # Upper bound line
-                fig.add_trace(go.Scatter(
-                    x=fc_sub["date"], y=fc_sub["upper_bound"],
-                    name="Upper Bound",
-                    line=dict(color=f"rgba({r},{g},{b},0.5)", width=1, dash="dot"),
-                    mode="lines", showlegend=True,
-                ))
-                # Lower bound line
-                fig.add_trace(go.Scatter(
-                    x=fc_sub["date"], y=fc_sub["lower_bound"],
-                    name="Lower Bound",
-                    line=dict(color=f"rgba({r},{g},{b},0.5)", width=1, dash="dot"),
-                    mode="lines", showlegend=True,
-                ))
-
-        # Cutoff line
-        if not hist_sub.empty:
-            cutoff_str = str(hist_sub["date"].max().date())
-            fig.add_shape(type="line", x0=cutoff_str, x1=cutoff_str, y0=0, y1=1,
-                          xref="x", yref="paper",
-                          line=dict(color="#64748b", width=1, dash="dot"))
-            fig.add_annotation(x=cutoff_str, y=1, xref="x", yref="paper",
-                               text="Forecast Start", showarrow=False,
-                               font=dict(color="#64748b", size=10), xanchor="left")
 
         fig.update_layout(**PLOTLY_LAYOUT, height=340,
-                          title=f"{sel_sku} · {sel_wh2}",
-                          xaxis_title="Date", yaxis_title="Demand (units)")
+                          xaxis_title="Date", yaxis_title="Demand (units)",
+                          title=f"Forecast — {sel_sku} @ {sel_wh2}")
         st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Run the pipeline to generate forecast data.")
 
-    # ── Model selection breakdown (if auto mode was used) ─────────────────
-    if not model_sel_df.empty:
-        section("Model Selection — Auto Best Per SKU×WH")
-        col_ms1, col_ms2 = st.columns(2)
-
-        with col_ms1:
-            ms_counts = model_sel_df["best_model"].value_counts().reset_index()
-            ms_counts.columns = ["Model", "Count"]
-            fig = go.Figure(go.Pie(
-                labels=ms_counts["Model"], values=ms_counts["Count"], hole=0.55,
-                marker_colors=[MODEL_COLORS.get(m, "#64748b") for m in ms_counts["Model"]],
-                textinfo="label+percent",
-                textfont=dict(family="DM Mono", size=10),
-            ))
-            fig.update_layout(**PLOTLY_LAYOUT, height=260, showlegend=False,
-                              title="Best Model Distribution")
-            st.plotly_chart(fig, use_container_width=True)
-
-        with col_ms2:
-            ms_mape = model_sel_df.groupby("best_model")["best_mape"].mean().reset_index()
-            fig = go.Figure(go.Bar(
-                x=ms_mape["best_model"], y=ms_mape["best_mape"],
-                marker_color=[MODEL_COLORS.get(m, "#64748b") for m in ms_mape["best_model"]],
-                text=ms_mape["best_mape"].map(lambda x: f"{x:.1f}%"),
-                textposition="outside",
-            ))
-            fig.update_layout(**PLOTLY_LAYOUT, height=260,
-                              title="Avg MAPE by Best Model",
-                              xaxis_title="", yaxis_title="Avg MAPE (%)")
-            st.plotly_chart(fig, use_container_width=True)
-
-    # ── MAPE distribution ─────────────────────────────────────────────────
-    col5, col6 = st.columns(2)
-
-    with col5:
-        section("MAPE Distribution by Warehouse")
-        if not accuracy_df.empty:
-            fig = px.box(accuracy_df, x="warehouse", y="mape", color="warehouse",
-                         color_discrete_sequence=["#00d4ff","#ff6b35","#7fff6b","#ffb830","#a78bfa","#f472b6","#fb923c"])
-            fig.update_layout(**PLOTLY_LAYOUT, height=280, showlegend=False,
-                              xaxis_title="", yaxis_title="MAPE (%)")
-            st.plotly_chart(fig, use_container_width=True)
-
-    with col6:
-        section("Forecast Accuracy by ABC Class")
-        if not accuracy_df.empty:
-            policy_abc = DATA.get("policy", pd.DataFrame())[["sku","abc_class"]].drop_duplicates()
-            acc_abc    = accuracy_df.merge(policy_abc, on="sku", how="left")
-            if "abc_class" in acc_abc.columns:
-                abc_acc = (acc_abc.groupby("abc_class")["forecast_accuracy"]
-                           .mean().reset_index())
-                abc_acc["forecast_accuracy"] *= 100
-                fig = go.Figure(go.Bar(
-                    x=abc_acc["abc_class"], y=abc_acc["forecast_accuracy"],
-                    marker=dict(color=["#00d4ff","#ff6b35","#7fff6b"]),
-                    text=abc_acc["forecast_accuracy"].map(lambda x: f"{x:.1f}%"),
-                    textposition="outside",
-                ))
-                fig.update_layout(**PLOTLY_LAYOUT, height=280,
-                                  xaxis_title="ABC Class",
-                                  yaxis_title="Forecast Accuracy (%)",
-                                  yaxis_range=[0,105])
-                st.plotly_chart(fig, use_container_width=True)
-
-    # ── Accuracy detail table ─────────────────────────────────────────────
-    section("Accuracy Detail Table")
     if not accuracy_df.empty:
-        with st.expander("⚙️  Table Options", expanded=False):
-            mape_thresh = st.slider("Show MAPE below (%)", 0, 200, 200, key="fc_mape_thresh")
-            sort_by_acc = st.selectbox("Sort by", ["mape","forecast_accuracy","bias"], key="fc_sort")
+        section("Forecast Accuracy by SKU × Warehouse")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            sort_by_acc = st.selectbox("Sort by", ["mape","forecast_accuracy","bias"], key="acc_sort")
+        with c2:
+            max_mape = st.slider("Max MAPE (%)", 10, 100, 50, key="acc_mape")
+        with c3:
+            acc_model_filter = st.selectbox(
+                "Model", ["All"] + sorted(accuracy_df["model"].unique().tolist()),
+                key="acc_model"
+            )
 
-        acc_show = accuracy_df.copy()
-        if mape_thresh < 200:
-            acc_show = acc_show[acc_show["mape"] <= mape_thresh]
+        acc_show = accuracy_df[accuracy_df["mape"] <= max_mape].copy()
+        if acc_model_filter != "All":
+            acc_show = acc_show[acc_show["model"] == acc_model_filter]
         acc_show = acc_show.sort_values(sort_by_acc)
         acc_show["forecast_accuracy"] = (acc_show["forecast_accuracy"]*100).map(lambda x: f"{x:.1f}%")
         acc_show["mape"]  = acc_show["mape"].map(lambda x: f"{x:.1f}%")
@@ -837,7 +656,6 @@ with tab2:
 with tab3:
     policy_base = apply_global(DATA.get("policy", pd.DataFrame()).copy())
 
-    # ── Local filters ─────────────────────────────────────────────────────
     section("Inventory Filters")
     lf1, lf2, lf3, lf4 = st.columns(4)
 
@@ -855,33 +673,30 @@ with tab3:
             key="inv_sort"
         )
 
-    # Apply local filters
     policy_f = policy_base.copy()
     if status_filter != "All" and not policy_f.empty:
         policy_f = policy_f[policy_f["policy_status"] == status_filter]
-    if not policy_f.empty:
+    if not policy_f.empty and "dos" in policy_f.columns:
         policy_f = policy_f[policy_f["dos"].replace(999, 999) <= dos_max]
         policy_f = policy_f[policy_f["stockout_risk"] * 100 >= risk_min]
 
-    # ── What-if recalculation using sidebar parameters ────────────────────
-    # Recalculate Safety Stock & ROP based on sidebar Lead Time + Service Level
+    # What-if recalculation
     from scipy import stats as scipy_stats
 
     def _recalc_ss(row, lt_override, sl_override):
-        """Recalculate safety stock with sidebar parameter overrides."""
-        z         = float(scipy_stats.norm.ppf(np.clip(sl_override / 100, 0.5, 0.9999)))
-        lt        = lt_override
-        lt_std    = row.get("lead_time_std", 2.0)
-        d_avg     = row.get("demand_avg", 0)
-        d_std     = row.get("demand_std", 0)
-        sigma     = np.sqrt(lt * d_std**2 + d_avg**2 * lt_std**2)
-        ss        = max(0.0, z * sigma)
-        rop       = max(0.0, d_avg * lt + ss)
+        z     = float(scipy_stats.norm.ppf(np.clip(sl_override / 100, 0.5, 0.9999)))
+        lt    = lt_override
+        lt_std = row.get("lead_time_std", 2.0)
+        d_avg  = row.get("demand_avg", 0)
+        d_std  = row.get("demand_std", 0)
+        sigma  = np.sqrt(lt * d_std**2 + d_avg**2 * lt_std**2)
+        ss     = max(0.0, z * sigma)
+        rop    = max(0.0, d_avg * lt + ss)
         return round(ss, 0), round(rop, 0)
 
     if not policy_f.empty and "demand_avg" in policy_f.columns:
         policy_f = policy_f.copy()
-        recalc    = policy_f.apply(
+        recalc   = policy_f.apply(
             lambda r: pd.Series(
                 _recalc_ss(r, g_lead_time, g_service_level),
                 index=["ss_whatif", "rop_whatif"]
@@ -889,7 +704,6 @@ with tab3:
         )
         policy_f["ss_whatif"]  = recalc["ss_whatif"]
         policy_f["rop_whatif"] = recalc["rop_whatif"]
-        # Recalculate policy_status based on new SS/ROP
         policy_f["status_whatif"] = "OK"
         policy_f.loc[policy_f["on_hand_units"] <= policy_f["ss_whatif"],  "status_whatif"] = "CRITICAL"
         policy_f.loc[
@@ -898,10 +712,8 @@ with tab3:
             "status_whatif"
         ] = "REORDER"
 
-    # ── KPIs ──────────────────────────────────────────────────────────────
     section("Inventory Policy KPIs")
 
-    # Check if sidebar params differ from data defaults
     base_lt  = policy_f["lead_time_avg"].mean() if not policy_f.empty and "lead_time_avg" in policy_f.columns else 14
     base_sl  = policy_f["target_service_level"].mean() * 100 if not policy_f.empty and "target_service_level" in policy_f.columns else 95
     is_whatif = abs(g_lead_time - base_lt) > 0.5 or abs(g_service_level - base_sl) > 0.5
@@ -916,13 +728,11 @@ with tab3:
     if not policy_f.empty:
         total_val = policy_f["inventory_value_vnd"].sum() / 1e9
         avg_dos   = policy_f["dos"].replace(999, np.nan).mean()
-        n_repl    = policy_f["replenishment_needed"].sum()
+        n_repl    = policy_f["replenishment_needed"].sum() if "replenishment_needed" in policy_f.columns else 0
         avg_risk  = policy_f["stockout_risk"].mean() * 100
-
-        # Use what-if SS if params changed, otherwise use original
-        avg_ss  = policy_f["ss_whatif"].mean()  if is_whatif and "ss_whatif"  in policy_f.columns else policy_f["safety_stock"].mean()
-        avg_rop = policy_f["rop_whatif"].mean() if is_whatif and "rop_whatif" in policy_f.columns else policy_f["reorder_point"].mean()
-        avg_eoq = policy_f["eoq"].mean()
+        avg_ss    = policy_f["ss_whatif"].mean()  if is_whatif and "ss_whatif"  in policy_f.columns else policy_f["safety_stock"].mean()
+        avg_rop   = policy_f["rop_whatif"].mean() if is_whatif and "rop_whatif" in policy_f.columns else policy_f["reorder_point"].mean()
+        avg_eoq   = policy_f["eoq"].mean()
 
         n_critical_whatif = (
             int((policy_f["status_whatif"] == "CRITICAL").sum())
@@ -933,63 +743,42 @@ with tab3:
         ss_label  = f"Avg Safety Stock {'⚡' if is_whatif else ''}"
         rop_label = f"Avg ROP {'⚡' if is_whatif else ''}"
 
-        cards = '<div class="kpi-grid">'
-        cards += kpi_card("Total Value",          f"{total_val:.2f}B",        "VND", "accent")
-        cards += kpi_card("Avg DOS",              f"{avg_dos:.1f}",           "days of supply", "accent3")
-        cards += kpi_card(ss_label,               f"{avg_ss:.0f}",            f"LT={g_lead_time}d SL={g_service_level}%", "accent")
-        cards += kpi_card(rop_label,              f"{avg_rop:.0f}",           "units reorder point", "accent2")
-        cards += kpi_card("Avg EOQ",              f"{avg_eoq:.0f}",           "units per order", "accent2")
-        cards += kpi_card("Need Replenishment",   str(int(n_repl)),           "SKU×WH", "warn")
-        cards += kpi_card("Avg Stockout Risk",    f"{avg_risk:.1f}%",         "", "danger")
-        cards += kpi_card(f"Critical {'⚡' if is_whatif else ''}",
-                          str(n_critical_whatif), "SKU×WH", "danger")
+        cards  = '<div class="kpi-grid">'
+        cards += kpi_card("Total Value",         f"{total_val:.2f}B",   "VND", "accent")
+        cards += kpi_card("Avg DOS",             f"{avg_dos:.1f}",      "days of supply", "accent3")
+        cards += kpi_card(ss_label,              f"{avg_ss:.0f}",       f"LT={g_lead_time}d SL={g_service_level}%", "accent")
+        cards += kpi_card(rop_label,             f"{avg_rop:.0f}",      "units reorder point", "accent2")
+        cards += kpi_card("Avg EOQ",             f"{avg_eoq:.0f}",      "units per order", "accent2")
+        cards += kpi_card("Need Replenishment",  str(int(n_repl)),      "SKU×WH", "warn")
+        cards += kpi_card("Avg Stockout Risk",   f"{avg_risk:.1f}%",    "", "danger")
+        cards += kpi_card(f"Critical {'⚡' if is_whatif else ''}", str(n_critical_whatif), "SKU×WH", "danger")
         cards += '</div>'
         st.markdown(cards, unsafe_allow_html=True)
     else:
         st.info("No data matches current filters.")
 
-    # ── Charts ────────────────────────────────────────────────────────────
     col7, col8 = st.columns(2)
 
     with col7:
-        section("Days of Supply by Warehouse × ABC")
+        section("DOS Distribution by Status")
         if not policy_f.empty:
-            heat = policy_f.copy()
-            heat["dos"] = heat["dos"].replace(999, np.nan)
-            heat["dos_plot"] = heat["dos"].clip(upper=60)
-            pivot = heat.pivot_table(
-                index="warehouse", columns="abc_class",
-                values="dos_plot", aggfunc="mean"
-            ).fillna(0)
-            fig = go.Figure(go.Heatmap(
-                z=pivot.values, x=pivot.columns.tolist(), y=pivot.index.tolist(),
-                colorscale=[[0,"#ff4444"],[0.3,"#ffb830"],[0.7,"#00d4ff"],[1,"#7fff6b"]],
-                text=[[f"{v:.1f}d" for v in row] for row in pivot.values],
-                texttemplate="%{text}", textfont=dict(size=11), showscale=True,
-            ))
-            fig.update_layout(**PLOTLY_LAYOUT, height=300,
-                              xaxis_title="ABC Class", yaxis_title="")
+            fig = go.Figure()
+            for status, color in STATUS_COLORS.items():
+                sub = policy_f[policy_f["policy_status"] == status]
+                if not sub.empty:
+                    fig.add_trace(go.Histogram(
+                        x=sub["dos"].replace(999, np.nan),
+                        name=status, marker_color=color, opacity=0.75,
+                        nbinsx=20,
+                    ))
+            fig.update_layout(**PLOTLY_LAYOUT, barmode="overlay", height=280,
+                              xaxis_title="Days of Supply", yaxis_title="Count")
             st.plotly_chart(fig, use_container_width=True)
 
     with col8:
-        section("EOQ vs Safety Stock by SKU Group")
-        if not policy_f.empty:
-            fig = px.scatter(
-                policy_f, x="safety_stock", y="eoq",
-                color="abc_class", size="on_hand_units",
-                hover_data=["sku","warehouse","dos","policy_status"],
-                color_discrete_map={"A":"#00d4ff","B":"#ffb830","C":"#7fff6b"},
-            )
-            fig.update_layout(**PLOTLY_LAYOUT, height=300,
-                              xaxis_title="Safety Stock (units)",
-                              yaxis_title="EOQ (units)")
-            st.plotly_chart(fig, use_container_width=True)
-
-    # ── On-Hand vs ROP waterfall ──────────────────────────────────────────
-    section("On-Hand vs ROP vs Safety Stock — Critical & Reorder Items")
-    if not policy_f.empty:
-        top20 = (policy_f[policy_f["policy_status"].isin(["CRITICAL","REORDER"])]
-                 .sort_values("stockout_risk", ascending=False).head(20))
+        section("Top 20 High-Risk SKUs — On Hand vs SS vs ROP")
+        top20 = apply_global(DATA.get("policy", pd.DataFrame()).copy())
+        top20 = top20.nlargest(20, "stockout_risk") if not top20.empty else top20
         if not top20.empty:
             top20 = top20.copy()
             top20["label"] = top20["sku"] + "\n" + top20["warehouse"]
@@ -1001,7 +790,6 @@ with tab3:
                               xaxis_tickangle=-45, xaxis_title="", yaxis_title="Units")
             st.plotly_chart(fig, use_container_width=True)
 
-    # ── Full policy table ─────────────────────────────────────────────────
     section("Full Policy Table")
     if not policy_f.empty:
         show = policy_f[[
@@ -1022,10 +810,9 @@ with tab3:
 # ══════════════════════════════════════════════════════════════════════════
 
 with tab4:
-    plan_base  = apply_global(DATA.get("plan",        pd.DataFrame()).copy())
+    plan_base  = apply_global(DATA.get("plan", pd.DataFrame()).copy())
     sup_kpi_df = DATA.get("supply_kpis", pd.DataFrame())
 
-    # ── Local filters ─────────────────────────────────────────────────────
     section("Supply Filters")
     sf1, sf2, sf3, sf4 = st.columns(4)
 
@@ -1052,7 +839,6 @@ with tab4:
     with sf4:
         cap_only = st.toggle("Capacity Issues Only", value=False, key="sup_cap")
 
-    # Apply local filters
     plan_f = plan_base.copy()
     if not plan_f.empty:
         if sel_supplier != "All":
@@ -1067,26 +853,23 @@ with tab4:
         if cap_only and "capacity_ok" in plan_f.columns:
             plan_f = plan_f[plan_f["capacity_ok"] == False]
 
-    # ── KPIs ──────────────────────────────────────────────────────────────
     section("Replenishment Plan KPIs")
     sk = sup_kpi_df.iloc[0].to_dict() if not sup_kpi_df.empty else {}
 
-    # Filtered KPIs
     f_orders = len(plan_f) if not plan_f.empty else 0
     f_value  = plan_f["order_value_vnd"].sum() / 1e9 if not plan_f.empty else 0
     f_units  = plan_f["adjusted_qty"].sum() if not plan_f.empty else 0
 
-    cards = '<div class="kpi-grid">'
-    cards += kpi_card("Total Orders (filtered)", str(f_orders),          "to place now", "danger")
-    cards += kpi_card("Order Value (filtered)",  f"{f_value:.2f}B",      "VND", "accent2")
-    cards += kpi_card("Units to Order (filtered)",f"{int(f_units):,}",   "units", "accent")
-    cards += kpi_card("Avg Lead Time",           f"{sk.get('avg_lead_time_days',0):.1f}", "days (all data)", "warn")
-    cards += kpi_card("Suppliers Involved",      str(sk.get('n_suppliers_involved',0)),   "active", "accent3")
-    cards += kpi_card("Safety Buffer",           f"{g_safety_buffer}%",  "from sidebar param", "warn")
+    cards  = '<div class="kpi-grid">'
+    cards += kpi_card("Total Orders (filtered)",  str(f_orders),        "to place now", "danger")
+    cards += kpi_card("Order Value (filtered)",   f"{f_value:.2f}B",    "VND", "accent2")
+    cards += kpi_card("Units to Order (filtered)",f"{int(f_units):,}",  "units", "accent")
+    cards += kpi_card("Avg Lead Time",            f"{sk.get('avg_lead_time_days',0):.1f}", "days (all data)", "warn")
+    cards += kpi_card("Suppliers Involved",       str(sk.get('n_suppliers_involved',0)),   "active", "accent3")
+    cards += kpi_card("Safety Buffer",            f"{g_safety_buffer}%","from sidebar param", "warn")
     cards += '</div>'
     st.markdown(cards, unsafe_allow_html=True)
 
-    # ── Charts ────────────────────────────────────────────────────────────
     col9, col10 = st.columns(2)
 
     with col9:
@@ -1108,45 +891,6 @@ with tab4:
             st.plotly_chart(fig, use_container_width=True)
 
     with col10:
-        section("Arrival Schedule")
-        if not plan_f.empty:
-            plan_f = plan_f.copy()
-            plan_f["arrival_str"] = plan_f["expected_arrival"].dt.strftime("%Y-%m-%d")
-            arr_df = (plan_f.groupby("arrival_str")
-                      .agg(units=("adjusted_qty","sum"), orders=("order_id","count"))
-                      .reset_index().sort_values("arrival_str"))
-            fig = go.Figure()
-            fig.add_trace(go.Bar(x=arr_df["arrival_str"], y=arr_df["units"],
-                                 name="Units Arriving", marker_color="#00d4ff"))
-            fig.add_trace(go.Scatter(x=arr_df["arrival_str"], y=arr_df["orders"],
-                                     name="# Orders", yaxis="y2",
-                                     line=dict(color="#ff6b35", width=2),
-                                     mode="lines+markers", marker=dict(size=6)))
-            layout = {k: v for k, v in PLOTLY_LAYOUT.items() if k not in ("yaxis",)}
-            layout.update({
-                "height": 300,
-                "xaxis_title": "Expected Arrival Date",
-                "yaxis":  dict(title="Units", gridcolor="#1e2736", linecolor="#1e2736", tickcolor="#1e2736"),
-                "yaxis2": dict(title="Orders", overlaying="y", side="right", gridcolor="rgba(0,0,0,0)"),
-            })
-            fig.update_layout(**layout)
-            st.plotly_chart(fig, use_container_width=True)
-
-    col11, col12 = st.columns(2)
-
-    with col11:
-        section("Order Value by Supplier")
-        if not plan_f.empty:
-            sup_df = plan_f.groupby("supplier_id")["order_value_vnd"].sum().div(1e9).reset_index()
-            fig = go.Figure(go.Pie(
-                labels=sup_df["supplier_id"], values=sup_df["order_value_vnd"], hole=0.5,
-                marker_colors=["#00d4ff","#ff6b35","#7fff6b","#ffb830"],
-                textinfo="label+percent", textfont=dict(size=10),
-            ))
-            fig.update_layout(**PLOTLY_LAYOUT, showlegend=False, height=280)
-            st.plotly_chart(fig, use_container_width=True)
-
-    with col12:
         section("DOS Before Order vs Stockout Risk")
         if not plan_f.empty:
             fig = px.scatter(
@@ -1160,7 +904,39 @@ with tab4:
                               yaxis_title="Stockout Risk")
             st.plotly_chart(fig, use_container_width=True)
 
-    # ── Full replenishment table ───────────────────────────────────────────
+    col11, col12 = st.columns(2)
+
+    with col11:
+        section("Orders by Arrival Date")
+        if not plan_f.empty and "expected_arrival" in plan_f.columns:
+            arr_daily = (plan_f.groupby(plan_f["expected_arrival"].dt.date)
+                         .agg(n_orders=("order_id","count"),
+                              total_value=("order_value_vnd","sum"))
+                         .reset_index())
+            arr_daily["total_value_b"] = arr_daily["total_value"] / 1e9
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=arr_daily["expected_arrival"], y=arr_daily["n_orders"],
+                name="Orders", marker_color="#00d4ff",
+            ))
+            fig.update_layout(**PLOTLY_LAYOUT, height=280,
+                              xaxis_title="Expected Arrival", yaxis_title="Order Count")
+            st.plotly_chart(fig, use_container_width=True)
+
+    with col12:
+        section("Order Value by Supplier")
+        if not plan_f.empty:
+            sup_plan = (plan_f.groupby("supplier_id")["order_value_vnd"]
+                        .sum().reset_index().sort_values("order_value_vnd", ascending=False))
+            sup_plan["value_b"] = sup_plan["order_value_vnd"] / 1e9
+            fig = go.Figure(go.Pie(
+                labels=sup_plan["supplier_id"], values=sup_plan["value_b"], hole=0.5,
+                textinfo="label+percent",
+                textfont=dict(family="DM Mono", size=10, color="#e2e8f0"),
+            ))
+            fig.update_layout(**PLOTLY_LAYOUT, height=280, showlegend=False)
+            st.plotly_chart(fig, use_container_width=True)
+
     section("Full Replenishment Plan")
     if not plan_f.empty:
         show_plan = plan_f[[
@@ -1178,3 +954,5 @@ with tab4:
         st.dataframe(show_plan.reset_index(drop=True), use_container_width=True, hide_index=True)
     elif not plan_base.empty:
         st.info("No orders match current supply filters.")
+    else:
+        st.info("Run the pipeline to generate replenishment plan data.")

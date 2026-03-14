@@ -1,6 +1,40 @@
-.DS_Store
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Environment
 .env
+.venv
+venv/
+env/
+
+# IDE / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ══════════════════════════════════════════════════════════════
+# IMPORTANT: Do NOT ignore output CSVs.
+# Streamlit Cloud clones the repo — if CSVs are missing,
+# Pipeline Status shows 🔴 for all items.
+# ══════════════════════════════════════════════════════════════
+!data/
+!data/outputs/
+!data/outputs/*.csv
+
+!inventory/
+!inventory/outputs/
+!inventory/outputs/*.csv
+
+!supply/
+!supply/outputs/
+!supply/outputs/*.csv
+
+!forecast/
+!forecast/outputs/
+!forecast/outputs/*.csv
