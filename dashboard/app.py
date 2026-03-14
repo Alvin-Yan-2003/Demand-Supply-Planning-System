@@ -850,18 +850,18 @@ with tab2:
                         boxpoints=False,  # ẩn outlier points
                         marker=dict(size=4, opacity=0.6),
                     ))
-
+            
             fig.update_layout(**PLOTLY_LAYOUT, height=280,
                               yaxis_title="MAPE (%)",
                               xaxis_title="",
-                              showlegend=False,
-                              xaxis=dict(
-                                  tickangle=0,
-                                  gridcolor="#1e2736",
-                                  linecolor="#1e2736",
-                                  tickcolor="#1e2736",
-                                  tickfont=dict(size=11),
-                              ))
+                              showlegend=False)
+            fig.update_layout(xaxis=dict(
+                tickangle=0,
+                gridcolor="#1e2736",
+                linecolor="#1e2736",
+                tickcolor="#1e2736",
+                tickfont=dict(size=11),
+            ))
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Accuracy data not available.")
