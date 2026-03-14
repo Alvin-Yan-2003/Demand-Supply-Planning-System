@@ -836,32 +836,84 @@ with tab2:
     with fc_col2:
         section("MAPE Distribution by Model")
         if not accuracy_df.empty and "mape" in accuracy_df.columns and "model" in accuracy_df.columns:
+            # Tính stats per model
+            model_stats = (
+                accuracy_df.groupby("model")["mape"]
+                .agg(avg="mean", std="std", count="count", median="median")
+                .reset_index()
+            )
+            # % SKU winning (best model)
+            if not model_sel_df.empty and "best_model" in model_sel_df.columns:
+                win_counts = model_sel_df["best_model"].value_counts()
+                total = len(model_sel_df)
+                model_stats["win_pct"] = model_stats["model"].map(
+                    lambda m: win_counts.get(m, 0) / total * 100
+                )
+            else:
+                model_stats["win_pct"] = 0
+
+            model_stats["label"] = model_stats["model"].str.replace("_", " ").str.title()
+            model_stats["color"] = model_stats["model"].map(
+                lambda m: MODEL_COLORS.get(m, "#64748b")
+            )
+
             fig = go.Figure()
-            for model_name, color in MODEL_COLORS.items():
-                sub = accuracy_df[accuracy_df["model"] == model_name]
-                if not sub.empty:
-                    fig.add_trace(go.Box(
-                        y=sub["mape"].clip(upper=100),  # clip outliers > 100%
-                        name=model_name.replace("_", " ").title(),
-                        marker_color=color,
-                        line_color=color,
-                        fillcolor=f"rgba({int(color[1:3],16)},{int(color[3:5],16)},{int(color[5:7],16)},0.4)",
-                        boxmean=True,
-                        boxpoints=False,
-                        marker=dict(size=4, opacity=0.6),
-                    ))
-            
-            fig.update_layout(**PLOTLY_LAYOUT, height=280,
+
+            # Bar: Avg MAPE
+            fig.add_trace(go.Bar(
+                x=model_stats["label"],
+                y=model_stats["avg"],
+                error_y=dict(
+                    type="data",
+                    array=model_stats["std"],
+                    visible=True,
+                    color="#64748b",
+                    thickness=1.5,
+                    width=6,
+                ),
+                marker_color=model_stats["color"].tolist(),
+                marker_opacity=0.85,
+                text=model_stats.apply(
+                    lambda r: f"Avg: {r['avg']:.1f}%<br>Median: {r['median']:.1f}%<br>Win: {r['win_pct']:.0f}%",
+                    axis=1
+                ),
+                textposition="outside",
+                textfont=dict(size=10, color="#e2e8f0"),
+            ))
+
+            # Median line scatter
+            fig.add_trace(go.Scatter(
+                x=model_stats["label"],
+                y=model_stats["median"],
+                mode="markers",
+                name="Median",
+                marker=dict(
+                    symbol="line-ew",
+                    size=24,
+                    color="#e2e8f0",
+                    line=dict(color="#e2e8f0", width=2),
+                ),
+                showlegend=True,
+            ))
+
+            fig.update_layout(**PLOTLY_LAYOUT, height=320,
                               yaxis_title="MAPE (%)",
                               xaxis_title="",
-                              showlegend=False)
-            fig.update_layout(xaxis=dict(
-                tickangle=0,
-                gridcolor="#1e2736",
-                linecolor="#1e2736",
-                tickcolor="#1e2736",
-                tickfont=dict(size=11),
-            ))
+                              showlegend=True,
+                              bargap=0.4)
+            fig.update_layout(
+                yaxis=dict(
+                    gridcolor="#1e2736",
+                    linecolor="#1e2736",
+                    tickcolor="#1e2736",
+                    range=[0, model_stats["avg"].max() * 1.6],
+                ),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom", y=1.02,
+                    xanchor="right", x=1,
+                ),
+            )
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Accuracy data not available.")
