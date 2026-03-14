@@ -1,0 +1,8 @@
+warehouse,region,capacity_cbm,capacity_tons,rental_cost_per_month_vnd,is_active
+WH-001,South,8169,4691.7,154641203.0,True
+WH-002,North,3604,1531.6,225757677.0,True
+WH-003,Central,5491,2601.6,209381908.0,True
+WH-004,South,5195,2809.6,256717624.0,True
+WH-005,North,3883,1801.6,221361529.0,True
+WH-006,Central,5734,3058.3,266262985.0,True
+WH-007,South,5930,3194.6,54999242.0,True

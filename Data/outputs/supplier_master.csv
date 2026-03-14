@@ -1,0 +1,5 @@
+supplier_id,supplier_name,region,reliability_score,min_order_qty,payment_terms_days
+SUP-001,Supplier Alpha,South,0.99,2002,60
+SUP-002,Supplier Beta,South,0.97,1831,60
+SUP-003,Supplier Gamma,Central,0.8,620,45
+SUP-004,Supplier Delta,North,0.81,2133,60

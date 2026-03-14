@@ -1,0 +1,2 @@
+total_orders,total_order_value_b_vnd,avg_order_value_m_vnd,total_units_ordered,n_critical_orders,n_reorder_orders,pct_capacity_ok,avg_lead_time_days,earliest_arrival,latest_arrival,n_suppliers_involved,n_warehouses_receiving
+37,11.43,309.03,543069,37,0,100.0,7.7,2024-07-02,2024-07-15,4,7

@@ -1,0 +1,2 @@
+avg_dos,median_dos,pct_critical,pct_reorder,pct_ok,pct_overstock,n_replenishment_needed,total_inventory_value_b_vnd,avg_stockout_risk_pct,avg_safety_stock,avg_eoq,total_skus
+6.1,5.2,29.2,53.0,17.9,0.0,138,3.99,82.44,988.7,14169.6,168

@@ -1,0 +1,2 @@
+mean_mape,median_mape,mean_forecast_accuracy,pct_below_20_mape,pct_below_30_mape,mean_bias,n_combinations
+34.97,29.6,65.79,6.0,54.2,-10.78,168
