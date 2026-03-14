@@ -278,7 +278,6 @@ PLOTLY_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     font=dict(family="DM Mono, monospace", color="#94a3b8", size=11),
-    title_font=dict(family="Syne, sans-serif", color="#e2e8f0", size=13),
     xaxis=dict(gridcolor="#1e2736", linecolor="#1e2736", tickcolor="#1e2736"),
     yaxis=dict(gridcolor="#1e2736", linecolor="#1e2736", tickcolor="#1e2736"),
     legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor="#1e2736"),
@@ -800,9 +799,59 @@ with tab2:
                                font=dict(color="#64748b", size=10), xanchor="left")
 
         fig.update_layout(**PLOTLY_LAYOUT, height=340,
-                          title=f"{sel_sku} · {sel_wh2}",
                           xaxis_title="Date", yaxis_title="Demand (units)")
+        fig.update_layout(title=dict(
+            text=f"{sel_sku} · {sel_wh2}",
+            font=dict(size=13, color="#e2e8f0", family="Syne"),
+        ))
         st.plotly_chart(fig, use_container_width=True)
+
+    # ── Best Model Distribution + MAPE Histogram ──────────────────────────
+    fc_col1, fc_col2 = st.columns(2)
+
+    with fc_col1:
+        section("Best Model Distribution")
+        if not model_sel_df.empty and "best_model" in model_sel_df.columns:
+            mc = model_sel_df["best_model"].value_counts().reset_index()
+            mc.columns = ["Model", "Count"]
+            mc["Model_label"] = mc["Model"].str.replace("_", " ").str.title()
+            fig = go.Figure(go.Pie(
+                labels=mc["Model_label"],
+                values=mc["Count"],
+                hole=0.55,
+                marker_colors=[MODEL_COLORS.get(m, "#64748b") for m in mc["Model"]],
+                textinfo="label+percent",
+                textfont=dict(family="DM Mono", size=10, color="#e2e8f0"),
+            ))
+            fig.add_annotation(
+                text=f"<b>{len(model_sel_df)}</b><br><span style='font-size:10px'>SKU×WH</span>",
+                x=0.5, y=0.5, showarrow=False,
+                font=dict(size=16, color="#e2e8f0", family="Syne"),
+            )
+            fig.update_layout(**PLOTLY_LAYOUT, showlegend=False, height=280)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Model selection data not available.")
+
+    with fc_col2:
+        section("MAPE Distribution by Model")
+        if not accuracy_df.empty and "mape" in accuracy_df.columns and "model" in accuracy_df.columns:
+            fig = go.Figure()
+            for model_name, color in MODEL_COLORS.items():
+                sub = accuracy_df[accuracy_df["model"] == model_name]
+                if not sub.empty:
+                    fig.add_trace(go.Histogram(
+                        x=sub["mape"],
+                        name=model_name.replace("_", " ").title(),
+                        marker_color=color,
+                        opacity=0.7,
+                        nbinsx=20,
+                    ))
+            fig.update_layout(**PLOTLY_LAYOUT, barmode="overlay", height=280,
+                              xaxis_title="MAPE (%)", yaxis_title="Count")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Accuracy data not available.")
 
     if not accuracy_df.empty:
         section("Forecast Accuracy by SKU × Warehouse")
