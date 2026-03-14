@@ -845,15 +845,23 @@ with tab2:
                         name=model_name.replace("_", " ").title(),
                         marker_color=color,
                         line_color=color,
-                        fillcolor=f"rgba({int(color[1:3],16)},{int(color[3:5],16)},{int(color[5:7],16)},0.15)",
+                        fillcolor=f"rgba({int(color[1:3],16)},{int(color[3:5],16)},{int(color[5:7],16)},0.4)",
                         boxmean=True,
                         boxpoints=False,  # ẩn outlier points
                         marker=dict(size=4, opacity=0.6),
                     ))
+
             fig.update_layout(**PLOTLY_LAYOUT, height=280,
-                              yaxis_title="MAPE (%) — capped at 100%",
-                              xaxis_title="Model",
-                              showlegend=False)
+                              yaxis_title="MAPE (%)",
+                              xaxis_title="",
+                              showlegend=False,
+                              xaxis=dict(
+                                  tickangle=0,
+                                  gridcolor="#1e2736",
+                                  linecolor="#1e2736",
+                                  tickcolor="#1e2736",
+                                  tickfont=dict(size=11),
+                              ))
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Accuracy data not available.")
