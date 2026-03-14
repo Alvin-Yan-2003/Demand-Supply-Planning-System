@@ -847,7 +847,7 @@ with tab2:
                         line_color=color,
                         fillcolor=f"rgba({int(color[1:3],16)},{int(color[3:5],16)},{int(color[5:7],16)},0.4)",
                         boxmean=True,
-                        boxpoints=False,  # ẩn outlier points
+                        boxpoints=True,  # ẩn outlier points
                         marker=dict(size=4, opacity=0.6),
                     ))
             
