@@ -840,15 +840,20 @@ with tab2:
             for model_name, color in MODEL_COLORS.items():
                 sub = accuracy_df[accuracy_df["model"] == model_name]
                 if not sub.empty:
-                    fig.add_trace(go.Histogram(
-                        x=sub["mape"],
+                    fig.add_trace(go.Box(
+                        y=sub["mape"],
                         name=model_name.replace("_", " ").title(),
                         marker_color=color,
-                        opacity=0.7,
-                        nbinsx=20,
+                        line_color=color,
+                        fillcolor=f"rgba({int(color[1:3],16)},{int(color[3:5],16)},{int(color[5:7],16)},0.15)",
+                        boxmean="sd",        # hiện mean + std deviation
+                        boxpoints="outliers", # chỉ hiện outlier points
+                        marker=dict(size=4, opacity=0.6),
                     ))
-            fig.update_layout(**PLOTLY_LAYOUT, barmode="overlay", height=280,
-                              xaxis_title="MAPE (%)", yaxis_title="Count")
+            fig.update_layout(**PLOTLY_LAYOUT, height=280,
+                              yaxis_title="MAPE (%)",
+                              xaxis_title="Model",
+                              showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Accuracy data not available.")
