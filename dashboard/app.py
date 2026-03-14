@@ -70,11 +70,20 @@ html, body, [data-testid="stAppViewContainer"] {
     color: var(--text) !important;
     font-family: var(--font-mono) !important;
 }
-.block-container {
-    padding-top: 0.75rem !important;
+/* ── Remove Streamlit default top padding ──────────── */
+[data-testid="stAppViewContainer"] > section.main > div.block-container {
+    padding-top: 1rem !important;
 }
-/* Top accent line — giống style của nhiều SaaS dashboard */
-[data-testid="stAppViewContainer"]::before {
+
+/* ── Hide Streamlit default header (toolbar) ────────── */
+[data-testid="stHeader"] {
+    height: 0rem !important;
+    min-height: 0rem !important;
+    display: none !important;
+}
+
+/* ── Accent gradient line thay thế ─────────────────── */
+[data-testid="stSidebar"]::before {
     content: '';
     display: block;
     height: 3px;
