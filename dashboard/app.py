@@ -65,17 +65,28 @@ st.markdown("""
     --font-head: 'Syne', sans-serif;
     --font-mono: 'DM Mono', monospace;
 }
-
 html, body, [data-testid="stAppViewContainer"] {
     background: var(--bg) !important;
     color: var(--text) !important;
     font-family: var(--font-mono) !important;
 }
+.block-container {
+    padding-top: 0.75rem !important;
+}
+/* Top accent line — giống style của nhiều SaaS dashboard */
+[data-testid="stAppViewContainer"]::before {
+    content: '';
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, #00d4ff 0%, #7fff6b 50%, #ff6b35 100%);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 9999;
+}
 [data-testid="stSidebar"] {
     background: var(--bg-card) !important;
     border-right: 1px solid var(--border) !important;
 }
-
 /* ── Sidebar sections ─────────────────────────────── */
 .sidebar-brand {
     font-family: var(--font-head);
