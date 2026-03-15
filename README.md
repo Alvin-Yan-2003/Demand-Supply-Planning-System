@@ -288,9 +288,9 @@ Prioritizing replenishment by ABC ensures Class A items (high-value, high-veloci
 
 ## 👤 Author
 
-**Hung Hoan** — Aspiring Supply Chain Analyst / Planner
+**Nim Hung Hoan** — Aspiring Supply Chain Analyst / Planner
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin)](https://linkedin.com/in/your-profile)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin)](https://www.linkedin.com/in/hhoan1811/)
 [![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?logo=github)](https://github.com/Alvin-Yan-2003)
 
 ---
